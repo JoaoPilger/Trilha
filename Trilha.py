@@ -58,40 +58,50 @@ def vizinhos(idx):
             return [idx + 1, idx - 1]
 
 #cria os retângulos interativo     
-def criaRects(left,top):
+def criaRects(left,top,salto):
     global coords
-    coords = []
+    coords = [[],[],[]]
     idx = 0
-    for e in range(2):
-        casa = pygame.Rect(left,top,36,36)
-        coords.append(casa)
-        left += 318
-        idx += 1
-    for e in range(2):
-        casa = pygame.Rect(left,top,36,36)
-        coords.append(casa)
-        top += 318
-    for e in range(2):
-        casa = pygame.Rect(left,top,36,36)
-        coords.append(casa)
-        left -= 318
-        idx += 1
-    for e in range(2):
-        casa = pygame.Rect(left,top,36,36)
-        coords.append(casa)
-        top -= 318
+    for lista in coords:
+        for e in range(8):
+            if e <= 1:
+                casa = pygame.Rect(left,top,36,36)
+                coords[coords.index(lista)].append(casa)
+                left += salto
+            elif e > 1 and e <= 3:
+                casa = pygame.Rect(left,top,36,36)
+                coords[coords.index(lista)].append(casa)
+                top += salto
+            elif e > 3 and e <= 5:
+                casa = pygame.Rect(left,top,36,36)
+                coords[coords.index(lista)].append(casa)
+                left -= salto
+            elif e > 5 and e <= 7:
+                casa = pygame.Rect(left,top,36,36)
+                coords[coords.index(lista)].append(casa)
+                top -= salto
+        idx +=1
+
     
 
-#cria os objeto de cada retângulo
+#cria o tabuleiro e os objetos "Casa"
 def criarPosicoes():
     global tabuleiro
     tabuleiro = [[],[],[]]
 
+    left = 13
+    top = 13
+    salto = 318
+
     for idx in range(3):
         for i in range(8):
-            criaRects(14,12)
-            novaCasa = Casa(i,False,None,vizinhos(i),idx,coords[i])
+            criaRects(left,top,salto)
+            novaCasa = Casa(i,False,None,vizinhos(i),idx,coords[idx][i])
             tabuleiro[idx].append(novaCasa.dictionaryCasa())
+        if idx < 2:
+            left += 115
+            top += 115
+            salto -= 114
 
 #confere se o clique foi dentro de uma casa
 def cliqueCasa(casa,mouse_pos):
@@ -104,16 +114,17 @@ criarPosicoes()
     
 #loop para o jogo rodar e atualizar
 while rodando:
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             rodando = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             mouse_pos = event.pos
+            idx = 0
             for i in tabuleiro:
-                idx = 0
                 for e in tabuleiro[idx]:
                     cliqueCasa(e['coordenadas'],mouse_pos)
-                    idx +=1
+                idx +=1
 
     screen.blit(background, (0,0))
     pygame.display.update()
