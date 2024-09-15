@@ -22,7 +22,7 @@ player1_rect = player1.get_rect()
 
 #imagem que representa o player2
 player2 = pygame.image.load("img/verde.webp").convert_alpha()
-player2 = pygame.transform.scale(player2, (38,38))
+player2 = pygame.transform.scale(player2, (39,38))
 player2_rect = player2.get_rect()
 
 #para manter o loop do jogo ativo
@@ -72,6 +72,7 @@ aTrocarCoord= []
 aTrocarPeca = []
 aTrocarOcup = []
 aTrocarVizi = []
+aTrocarCamada = []
 
 #registra quantos eventos aconteceram (usado na troca de peças)
 QuantEvents = 0
@@ -145,7 +146,6 @@ def criarPosicoes():
 #escolha inicial das casas
 def escolhaInicial(pecas,pecaJogador):
     mouse_pos = event.pos
-    imgCoord = event.pos
     for i in tabuleiro:
         for e in i:
             if len(pecas[pecaJogador]) < 9:
@@ -155,12 +155,14 @@ def escolhaInicial(pecas,pecaJogador):
 
 def escolhaCasa(casa, mouse_pos, pecas,pecaEstado,pecaJogador,e):
     if casa.collidepoint(mouse_pos):
+        global jogador
         if e['ocupado'] == False:
             e['ocupado'] = True
             e['peca'] = jogador
             pecas[pecaJogador].append(pecaEstado) #posso alterar para False quando retirar a peca do jogo sem quebrar o loop d repetição
             novoJogador = imgJogador(e['coordenadas'],jogador)
             imagens.append(novoJogador.dicionarioImg())
+            jogador = player1 if jogador == player2 else player2
 
 
             print("ocupado")
@@ -176,23 +178,30 @@ def escolhaTroca(posicaoInicial,mouse_pos, e):
             aTrocarPeca.append(e['peca'])
             aTrocarOcup.append(e['ocupado'])
             aTrocarVizi.append(e['vizinhos'])
+            aTrocarCamada.append(e['camada_id'])
 
 
-def trocaPosicao(i,obj,idx,jogador):
+def trocaPosicao(i,obj,idx):
+    global jogador
     for e in i:
         if e['ocupado'] == aTrocarOcup[idx - 1] and e['peca'] == aTrocarPeca[idx - 1]:
             e['ocupado'] = False
             e['peca'] = None
-    obj['ocupado'] = True
-    obj['peca'] = jogador
-    print("trocado")
-    jogador = player1 if jogador == player2 else player2
+            for imagem in imagens:
+                if aTrocarCoord[idx - 1] == imagem['coordenadas']:
+                        imagem['coordenadas'] = obj['coordenadas']
+            obj['ocupado'] = True
+            obj['peca'] = jogador
+            print("trocado")
+            jogador = player1 if jogador == player2 else player2
+            break
+
+                #criar elif para caso seja a mesma casa em camadas diferentes
 
 
 
-def trocaCasa(idx,jogador):
+def trocaCasa(idx):
     mouse_pos = event.pos
-
     global cliqueState
 
     if cliqueState == True:
@@ -200,7 +209,7 @@ def trocaCasa(idx,jogador):
             for obj in i:
                 if obj['ocupado'] == False and aTrocarCoord[idx - 1] != obj['coordenadas']: #ta tendo problema no idx que não troca d 0!!!
                     if obj['coordenadas'].collidepoint(mouse_pos) and obj['id'] in aTrocarVizi[idx - 1]:
-                        trocaPosicao(i,obj,idx,jogador)
+                        trocaPosicao(i,obj,idx)
                         cliqueState = 1
     
     if cliqueState == False:
@@ -237,7 +246,7 @@ while rodando:
             rodando = False
 
         if len(pecas[pecaJogador]) == 9 and event.type == pygame.MOUSEBUTTONDOWN:
-            trocaCasa(QuantEvents,jogador)
+            trocaCasa(QuantEvents)
 
         if len(pecas[pecaJogador]) < 9 and event.type == pygame.MOUSEBUTTONDOWN: #Verifica a posição do clique e executa a função cliqueCasa
             if pecaJogador == 0:
@@ -245,7 +254,6 @@ while rodando:
             elif pecaJogador == 1:
                 imagem = pygame.transform.scale(player2, (40,40))
             escolhaInicial(pecas,pecaJogador)
-            jogador = player1 if jogador == player2 else player2
 
         if jogador == player1:
             pecaJogador = 0
